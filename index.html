@@ -338,15 +338,34 @@
         </div>
     </div>
 
-    <!-- ==================== MOVING AVERAGES ==================== -->
+       <!-- ==================== MOVING AVERAGES ==================== -->
     <div id="moving_average" class="section" style="display:none;">
         <div class="card">
             <h2>📊 Types of Moving Averages</h2>
-            <div class="grid-3">
-                <div class="concept-box"><strong>📊 SMA</strong><br>Equal weights<br>✅ Best for: Basic trends</div>
-                <div class="concept-box"><strong>📈 EMA</strong><br>More weight to recent<br>✅ Best for: Fast reaction</div>
-                <div class="concept-box"><strong>⚖️ WMA</strong><br>Custom linear weights<br>✅ Best for: Custom strategies</div>
+            
+            <!-- Moving Average Definition -->
+            <div class="concept-box" style="margin-bottom: 20px; background: rgba(0,0,0,0.3);">
+                <strong>📊 What is a Moving Average?</strong><br>
+                A Moving Average is a calculation that averages a set number of past data points to create a smooth line that follows the general direction of your data. It "moves" because as new data comes in, you drop the oldest value and add the newest one.
+                <br><br>
+                <strong>📐 Formula (Simple Moving Average):</strong><br>
+                <code style="background: #0d0d1a; padding: 8px 12px; display: inline-block; border-radius: 8px;">MAₙ = (Price₁ + Price₂ + ... + Priceₙ) / n</code>
+                <br><br>
+                <strong>💡 Why use Moving Averages?</strong><br>
+                • <strong>Smooths out noise</strong> - Removes random short-term fluctuations<br>
+                • <strong>Reveals trends</strong> - Shows the true direction of data<br>
+                • <strong>Identifies support/resistance</strong> - Price often bounces off MAs<br>
+                • <strong>Generates trading signals</strong> - Crossovers indicate trend changes
+                <br><br>
+                <strong>⚠️ Important to know:</strong> Moving averages are <strong>lagging indicators</strong> — they react after price moves. Larger windows = more lag but smoother lines.
             </div>
+            
+            <div class="grid-3">
+                <div class="concept-box"><strong>📊 SMA (Simple Moving Average)</strong><br>Equal weights to all values<br>📐 Formula: (P₁ + P₂ + ... + Pₙ)/n<br>✅ Best for: Basic trend identification</div>
+                <div class="concept-box"><strong>📈 EMA (Exponential Moving Average)</strong><br>More weight to recent values<br>📐 Formula: EMA = Price × k + Previous_EMA × (1-k)<br>✅ Best for: Fast reaction to new data</div>
+                <div class="concept-box"><strong>⚖️ WMA (Weighted Moving Average)</strong><br>Custom linear weights<br>📐 Formula: Σ(weight × price) / Σ(weight)<br>✅ Best for: Custom weighting strategies</div>
+            </div>
+            
             <div class="grid-2">
                 <div><div id="maChart" style="height: 400px;"></div><button onclick="showCode('ma_code')">🐍 Show Python Code</button></div>
                 <div>
