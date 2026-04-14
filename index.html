@@ -833,6 +833,90 @@ plt.figure(figsize=(12,5))
 plt.plot(df.index, df['Value'])
 plt.title('Time Series = Trend + Seasonality + Noise')
 plt.show()`,
+        trend_code: `# Detecting Trend in Time Series
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+from scipy import stats
+
+# Create sample data with trend
+dates = pd.date_range('2024-01-01', periods=150, freq='D')
+trend = np.linspace(100, 250, 150)  # Upward trend from 100 to 250
+noise = np.random.normal(0, 8, 150)
+data = trend + noise
+
+df = pd.DataFrame({'Date': dates, 'Value': data})
+df.set_index('Date', inplace=True)
+
+# Method 1: Linear Regression to find trend
+x = np.arange(len(df))
+slope, intercept, r_value, p_value, std_err = stats.linregress(x, df['Value'])
+df['Trend_Line'] = intercept + slope * x
+
+# Method 2: Moving Average to smooth noise
+df['MA_20'] = df['Value'].rolling(window=20).mean()
+
+# Plot everything
+plt.figure(figsize=(12,5))
+plt.plot(df.index, df['Value'], alpha=0.4, label='Original Data', color='gray')
+plt.plot(df.index, df['Trend_Line'], label=f'Trend Line (slope={slope:.2f})', color='red', linewidth=2)
+plt.plot(df.index, df['MA_20'], label='20-day Moving Average', color='blue', linewidth=2)
+plt.legend()
+plt.title('Trend Analysis in Time Series')
+plt.xlabel('Date')
+plt.ylabel('Value')
+plt.grid(True, alpha=0.3)
+plt.show()
+
+print(f"Trend direction: {'Upward' if slope > 0 else 'Downward' if slope < 0 else 'Flat'}")
+print(f"Slope: {slope:.4f} units per day")
+print(f"R-squared: {r_value**2:.4f} (how well trend fits the data)")`,
+
+    seasonality_code: `# Detecting Seasonality in Time Series
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+
+# Create data with clear seasonality
+dates = pd.date_range('2024-01-01', periods=300, freq='D')
+trend = np.linspace(100, 120, 300)  # slight upward trend
+seasonality = 15 * np.sin(2 * np.pi * np.arange(300) / 30)  # 30-day cycle
+noise = np.random.normal(0, 3, 300)
+data = trend + seasonality + noise
+
+df = pd.DataFrame({'Date': dates, 'Value': data})
+df.set_index('Date', inplace=True)
+
+# Method 1: Visual inspection
+plt.figure(figsize=(14,5))
+plt.plot(df.index, df['Value'])
+plt.title('Time Series with Clear Seasonality')
+plt.xlabel('Date')
+plt.ylabel('Value')
+plt.grid(True, alpha=0.3)
+plt.show()
+
+# Method 2: Seasonal subseries plot (by month)
+df['Month'] = df.index.month
+monthly_avg = df.groupby('Month')['Value'].mean()
+
+plt.figure(figsize=(10,4))
+plt.bar(monthly_avg.index, monthly_avg.values, color='steelblue')
+plt.title('Average Value by Month - Seasonal Pattern Detected')
+plt.xlabel('Month')
+plt.ylabel('Average Value')
+plt.xticks(range(1,13), ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'])
+plt.grid(True, alpha=0.3, axis='y')
+plt.show()
+
+# Method 3: Using ACF to detect seasonality
+from statsmodels.graphics.tsaplots import plot_acf
+plt.figure(figsize=(12,4))
+plot_acf(df['Value'], lags=60)
+plt.title('ACF Plot - Spikes at regular intervals indicate seasonality')
+plt.show()
+
+print("✅ Seasonality detected! Pattern repeats every 30 days.")`,
         
         differencing_code: `# Differencing - Complete Guide
 import pandas as pd
