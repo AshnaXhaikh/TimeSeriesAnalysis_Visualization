@@ -1,0 +1,1076 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>📊 Complete Time Series Analysis - Interactive Learning Dashboard</title>
+    <script src="https://cdn.plot.ly/plotly-3.0.1.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            color: #fff;
+            min-height: 100vh;
+        }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 30px;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+        .header h1 { font-size: 2.5rem; margin-bottom: 10px; }
+        .header p { font-size: 1.1rem; opacity: 0.9; }
+        .quote { font-style: italic; margin-top: 10px; font-size: 1rem; opacity: 0.8; }
+        .nav {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            padding: 20px;
+            background: rgba(0,0,0,0.3);
+            flex-wrap: wrap;
+        }
+        .nav-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            padding: 12px 20px;
+            border-radius: 30px;
+            color: white;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: bold;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .nav-btn:hover { transform: translateY(-2px); box-shadow: 0 5px 20px rgba(102,126,234,0.4); }
+        .nav-btn.active { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); }
+        .container { max-width: 1400px; margin: 0 auto; padding: 20px; }
+        .card {
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 25px;
+            margin-bottom: 25px;
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+        .card h2 { margin-bottom: 20px; color: #667eea; border-left: 4px solid #667eea; padding-left: 15px; }
+        .card h3 { margin: 15px 0 10px 0; color: #f093fb; }
+        .control-group {
+            background: rgba(0,0,0,0.3);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .control-group label { display: block; margin-bottom: 8px; font-weight: bold; color: #ddd; }
+        input[type="range"] {
+            width: 100%;
+            margin: 10px 0;
+            height: 6px;
+            border-radius: 3px;
+            background: #667eea;
+            -webkit-appearance: none;
+        }
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #f093fb;
+            cursor: pointer;
+        }
+        select {
+            width: 100%;
+            padding: 10px;
+            border-radius: 10px;
+            background: rgba(0,0,0,0.5);
+            color: white;
+            border: 1px solid #667eea;
+            margin: 10px 0;
+        }
+        .param-value {
+            display: inline-block;
+            background: #667eea;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            margin-left: 10px;
+        }
+        .concept-box {
+            background: rgba(102,126,234,0.2);
+            border-left: 4px solid #667eea;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 15px 0;
+        }
+        .concept-box strong { color: #f093fb; }
+        .grid-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 20px; }
+        .grid-3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; }
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            padding: 10px 20px;
+            border-radius: 25px;
+            color: white;
+            cursor: pointer;
+            font-size: 1rem;
+            margin: 5px;
+            transition: opacity 0.2s;
+        }
+        button:hover { opacity: 0.9; }
+        .code-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+        .code-content {
+            background: #1e1e2e;
+            border-radius: 20px;
+            width: 80%;
+            max-width: 800px;
+            max-height: 80%;
+            overflow: auto;
+            padding: 20px;
+            border: 2px solid #667eea;
+        }
+        .code-content pre {
+            background: #0d0d1a;
+            padding: 20px;
+            border-radius: 10px;
+            overflow-x: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            color: #00ff9d;
+        }
+        .close-code { float: right; font-size: 28px; cursor: pointer; color: #fff; }
+        .info-text {
+            background: rgba(0,0,0,0.3);
+            padding: 15px;
+            border-radius: 10px;
+            margin: 10px 0;
+            font-size: 0.95rem;
+            line-height: 1.6;
+        }
+        .metric {
+            display: inline-block;
+            background: #667eea;
+            padding: 5px 15px;
+            border-radius: 20px;
+            margin: 5px;
+            font-size: 0.9rem;
+        }
+        .formula {
+            background: #0d0d1a;
+            padding: 15px;
+            border-radius: 10px;
+            font-family: monospace;
+            font-size: 1.2rem;
+            text-align: center;
+            margin: 15px 0;
+            color: #00ff9d;
+        }
+        .warning-box {
+            background: rgba(255,100,100,0.2);
+            border-left: 4px solid #ff6b6b;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 15px 0;
+        }
+        .success-box {
+            background: rgba(100,255,100,0.2);
+            border-left: 4px solid #00ff9d;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 15px 0;
+        }
+        .footer {
+            text-align: center;
+            padding: 30px;
+            background: rgba(0,0,0,0.3);
+            margin-top: 40px;
+        }
+        @media (max-width: 768px) {
+            .grid-2, .grid-3 { grid-template-columns: 1fr; }
+            .nav-btn { padding: 8px 12px; font-size: 0.7rem; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <h1>📊 Complete Time Series Analysis Learning Dashboard</h1>
+    <p>Master TSA through interactive exploration | "I do = I understand"</p>
+    <div class="quote">🎯 Adjust parameters → See instant changes → Click "Show Python Code" → Apply in your own projects!</div>
+</div>
+
+<div class="nav">
+    <button class="nav-btn active" onclick="showSection('fundamentals')">📖 Fundamentals</button>
+    <button class="nav-btn" onclick="showSection('trend')">📈 Trend</button>
+    <button class="nav-btn" onclick="showSection('seasonality')">🔄 Seasonality</button>
+    <button class="nav-btn" onclick="showSection('moving_average')">📊 Moving Averages</button>
+    <button class="nav-btn" onclick="showSection('autocorrelation')">🔗 ACF</button>
+    <button class="nav-btn" onclick="showSection('differencing')">🔄 Differencing</button>
+    <button class="nav-btn" onclick="showSection('decomposition')">🔧 Decomposition</button>
+    <button class="nav-btn" onclick="showSection('stationarity')">⚡ Stationarity</button>
+    <button class="nav-btn" onclick="showSection('quiz')">🎯 Quiz</button>
+</div>
+
+<div class="container">
+    <!-- ==================== FUNDAMENTALS ==================== -->
+    <div id="fundamentals" class="section">
+        <div class="card">
+            <h2>📖 What is Time Series Analysis?</h2>
+            <div class="grid-2">
+                <div>
+                    <div class="concept-box"><strong>📊 Definition:</strong> Time series data is a sequence of observations collected at regular time intervals.</div>
+                    <div class="concept-box"><strong>🎯 Main Goal:</strong> Understand patterns, make predictions, and support decision-making.</div>
+                    <div class="info-text"><strong>🏭 Applications:</strong> Finance, Healthcare, Retail, Weather, Social Media</div>
+                    <button onclick="showCode('fundamentals_code')">🐍 Show Python Code</button>
+                </div>
+                <div>
+                    <div id="fundamentalChart" style="height: 300px;"></div>
+                    <div class="control-group">
+                        <label>📈 Trend: <span id="fundTrendVal" class="param-value">0.5</span></label>
+                        <input type="range" id="fundTrend" min="-2" max="2" step="0.1" value="0.5" oninput="updateFundamentalChart()">
+                        <label>🔄 Seasonality: <span id="fundSeasonVal" class="param-value">10</span></label>
+                        <input type="range" id="fundSeason" min="0" max="20" step="1" value="10" oninput="updateFundamentalChart()">
+                        <label>🎲 Noise: <span id="fundNoiseVal" class="param-value">5</span></label>
+                        <input type="range" id="fundNoise" min="0" max="15" step="1" value="5" oninput="updateFundamentalChart()">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== TREND ==================== -->
+    <div id="trend" class="section" style="display:none;">
+        <div class="card">
+            <h2>📈 Understanding Trend</h2>
+            <div class="grid-2">
+                <div>
+                    <div class="concept-box"><strong>📈 What is Trend?</strong> Long-term direction — increasing, decreasing, or stable.</div>
+                    <div class="concept-box"><strong>🎯 Types:</strong> Upward 📈, Downward 📉, Sideways ➡️, Exponential 🚀</div>
+                    <button onclick="showCode('trend_code')">🐍 Show Python Code</button>
+                </div>
+                <div>
+                    <div id="trendChart" style="height: 350px;"></div>
+                    <div class="control-group">
+                        <label>📊 Trend Type: <select id="trendType" onchange="updateTrendChart()">
+                            <option value="up">📈 Upward Trend</option>
+                            <option value="down">📉 Downward Trend</option>
+                            <option value="flat">➡️ Flat Trend</option>
+                            <option value="exponential">🚀 Exponential Growth</option>
+                        </select></label>
+                        <label>📐 Strength: <span id="trendStrengthVal" class="param-value">1.0</span></label>
+                        <input type="range" id="trendStrength" min="0" max="3" step="0.1" value="1" oninput="updateTrendChart()">
+                        <label>🎲 Noise: <span id="trendNoiseVal" class="param-value">5</span></label>
+                        <input type="range" id="trendNoise" min="0" max="20" step="1" value="5" oninput="updateTrendChart()">
+                    </div>
+                </div>
+            </div>
+            <div id="trendInterpretation" class="info-text" style="text-align: center;"></div>
+        </div>
+    </div>
+
+    <!-- ==================== SEASONALITY ==================== -->
+    <div id="seasonality" class="section" style="display:none;">
+        <div class="card">
+            <h2>🔄 Understanding Seasonality</h2>
+            <div class="grid-2">
+                <div>
+                    <div class="concept-box"><strong>🔄 What is Seasonality?</strong> Regular, predictable patterns at fixed intervals.</div>
+                    <div class="concept-box"><strong>📅 Examples:</strong> Ice cream sales ↑ summer, Retail ↑ December</div>
+                    <button onclick="showCode('seasonality_code')">🐍 Show Python Code</button>
+                </div>
+                <div>
+                    <div id="seasonalityChart" style="height: 350px;"></div>
+                    <div class="control-group">
+                        <label>📏 Amplitude: <span id="seasonAmpVal" class="param-value">15</span></label>
+                        <input type="range" id="seasonAmp" min="0" max="30" step="1" value="15" oninput="updateSeasonalityChart()">
+                        <label>⏰ Period (days): <span id="seasonPeriodVal" class="param-value">30</span></label>
+                        <input type="range" id="seasonPeriod" min="7" max="90" step="1" value="30" oninput="updateSeasonalityChart()">
+                        <label>📈 Trend: <span id="seasonTrendVal" class="param-value">0</span></label>
+                        <input type="range" id="seasonTrend" min="-1" max="1" step="0.1" value="0" oninput="updateSeasonalityChart()">
+                    </div>
+                </div>
+            </div>
+            <div id="seasonInterpretation" class="info-text"></div>
+        </div>
+    </div>
+
+    <!-- ==================== MOVING AVERAGES ==================== -->
+    <div id="moving_average" class="section" style="display:none;">
+        <div class="card">
+            <h2>📊 Types of Moving Averages</h2>
+            <div class="grid-3">
+                <div class="concept-box"><strong>📊 SMA</strong><br>Equal weights<br>✅ Best for: Basic trends</div>
+                <div class="concept-box"><strong>📈 EMA</strong><br>More weight to recent<br>✅ Best for: Fast reaction</div>
+                <div class="concept-box"><strong>⚖️ WMA</strong><br>Custom linear weights<br>✅ Best for: Custom strategies</div>
+            </div>
+            <div class="grid-2">
+                <div><div id="maChart" style="height: 400px;"></div><button onclick="showCode('ma_code')">🐍 Show Python Code</button></div>
+                <div>
+                    <div class="control-group">
+                        <label>📏 MA Type: <select id="maType" onchange="updateMAChart()">
+                            <option value="sma">📊 Simple Moving Average (SMA)</option>
+                            <option value="ema">📈 Exponential Moving Average (EMA)</option>
+                            <option value="wma">⚖️ Weighted Moving Average (WMA)</option>
+                        </select></label>
+                        <label>Window Size: <span id="maWindowVal" class="param-value">20</span></label>
+                        <input type="range" id="maWindow" min="3" max="50" step="1" value="20" oninput="updateMAChart()">
+                        <label>📈 Trend: <span id="maTrendVal" class="param-value">0.5</span></label>
+                        <input type="range" id="maTrend" min="-1" max="1" step="0.05" value="0.5" oninput="updateMAChart()">
+                        <label>🎲 Noise: <span id="maNoiseVal" class="param-value">8</span></label>
+                        <input type="range" id="maNoise" min="0" max="20" step="1" value="8" oninput="updateMAChart()">
+                    </div>
+                    <div id="maInterpretation" class="info-text"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== AUTOCORRELATION (ACF) ==================== -->
+    <div id="autocorrelation" class="section" style="display:none;">
+        <div class="card">
+            <h2>🔗 Autocorrelation (ACF) - Complete Guide</h2>
+            <div class="grid-2">
+                <div>
+                    <div class="concept-box"><strong>🔗 What is Autocorrelation?</strong> Measures similarity between a series and its lagged version.<br><strong>Formula:</strong> Corr(yₜ, yₜ₋ₖ)</div>
+                    <div class="concept-box"><strong>📊 ACF Plot Anatomy:</strong> • <span style="color:#00ff9d">■</span> Bars = Correlation • <span style="color:#ff6b6b">---</span> Blue lines = 95% significance threshold</div>
+                    <button onclick="showCode('acf_code')">🐍 Show Python Code</button>
+                </div>
+                <div>
+                    <div id="acfChart" style="height: 350px;"></div>
+                    <div class="control-group">
+                        <label>📊 Pattern: <select id="acfPattern" onchange="updateACFChart()">
+                            <option value="random">🎲 White Noise</option>
+                            <option value="trend">📈 Trend (Slow Decay)</option>
+                            <option value="seasonal">🔄 Seasonal (Spikes)</option>
+                            <option value="ar1">🔄 AR(1) (Exponential Decay)</option>
+                        </select></label>
+                        <label>📈 Trend: <span id="acfTrendVal" class="param-value">0.5</span></label>
+                        <input type="range" id="acfTrend" min="0" max="1.5" step="0.05" value="0.5" oninput="updateACFChart()">
+                    </div>
+                </div>
+            </div>
+            <div id="acfInterpretation" class="info-text"></div>
+            <div class="info-text"><strong>📖 How to Read ACF:</strong> • Bars inside blue band = Not significant • Slow decay = Non-stationary • Spikes at regular intervals = Seasonality</div>
+        </div>
+    </div>
+
+    <!-- ==================== DIFFERENCING (DETAILED) ==================== -->
+    <div id="differencing" class="section" style="display:none;">
+        <div class="card">
+            <h2>🔄 Differencing - Complete Guide</h2>
+            
+            <div class="grid-2">
+                <div>
+                    <div class="concept-box">
+                        <strong>🔄 What is Differencing?</strong><br>
+                        Differencing is a transformation that subtracts the previous observation from the current observation to remove trend and make the time series stationary.
+                    </div>
+                    <div class="formula">
+                        📐 First Order Differencing: <strong>y'ₜ = yₜ - yₜ₋₁</strong>
+                    </div>
+                    <div class="formula">
+                        📐 Second Order Differencing: <strong>y''ₜ = y'ₜ - y'ₜ₋₁</strong>
+                    </div>
+                    <div class="formula">
+                        📐 Seasonal Differencing: <strong>y'ₜ = yₜ - yₜ₋ₘ</strong> (where m = seasonal period)
+                    </div>
+                    
+                    <div class="success-box">
+                        <strong>✅ Why Use Differencing?</strong><br>
+                        • Removes trend and seasonality<br>
+                        • Makes the series stationary<br>
+                        • Required for ARIMA models<br>
+                        • Stabilizes the mean over time
+                    </div>
+                    
+                    <div class="warning-box">
+                        <strong>⚠️ When NOT to use Differencing:</strong><br>
+                        • Data is already stationary (over-differencing adds noise)<br>
+                        • You want to preserve the original scale for interpretation<br>
+                        • The series has a deterministic trend (use detrending instead)
+                    </div>
+                    
+                    <button onclick="showCode('differencing_code')">🐍 Show Python Code (Detailed)</button>
+                </div>
+                
+                <div>
+                    <div id="differencingChart" style="height: 400px;"></div>
+                    <div class="control-group">
+                        <label>📈 Original Trend Strength: <span id="diffTrendVal" class="param-value">1.5</span></label>
+                        <input type="range" id="diffTrend" min="0" max="3" step="0.1" value="1.5" oninput="updateDifferencing()">
+                        <label>🔄 Differencing Order: 
+                            <select id="diffOrder" onchange="updateDifferencing()">
+                                <option value="0">0 - No Differencing (Original)</option>
+                                <option value="1">1 - First Order Differencing</option>
+                                <option value="2">2 - Second Order Differencing</option>
+                            </select>
+                        </label>
+                        <label>🔄 Show Seasonal Differencing: 
+                            <input type="checkbox" id="showSeasonalDiff" onchange="updateDifferencing()">
+                        </label>
+                    </div>
+                    <div id="differencingInterpretation" class="info-text"></div>
+                </div>
+            </div>
+            
+            <div class="grid-3" style="margin-top: 20px;">
+                <div class="concept-box">
+                    <strong>📊 First Order Differencing</strong><br>
+                    Removes linear trend<br>
+                    Formula: yₜ - yₜ₋₁<br>
+                    📉 Result: Series fluctuates around constant mean
+                </div>
+                <div class="concept-box">
+                    <strong>📈 Second Order Differencing</strong><br>
+                    Removes quadratic trend<br>
+                    Formula: (yₜ - yₜ₋₁) - (yₜ₋₁ - yₜ₋₂)<br>
+                    📉 Result: Very smooth, but can amplify noise
+                </div>
+                <div class="concept-box">
+                    <strong>🔄 Seasonal Differencing</strong><br>
+                    Removes seasonal patterns<br>
+                    Formula: yₜ - yₜ₋ₘ (m = season period)<br>
+                    📉 Result: Removes repeating patterns
+                </div>
+            </div>
+            
+            <div class="info-text">
+                <strong>💡 Key Insight:</strong> After differencing, check if the series is stationary by looking at the ACF plot. 
+                A stationary series will have ACF bars that quickly drop to zero (no slow decay).
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== DECOMPOSITION ==================== -->
+    <div id="decomposition" class="section" style="display:none;">
+        <div class="card">
+            <h2>🔧 Time Series Decomposition</h2>
+            <div class="concept-box"><strong>🔧 What is Decomposition?</strong> Breaking down into: <span class="metric">Trend</span> + <span class="metric">Seasonality</span> + <span class="metric">Residual</span></div>
+            <div id="decompChart" style="height: 550px;"></div>
+            <div class="control-group">
+                <label>📈 Trend: <span id="decompTrendVal" class="param-value">0.8</span></label>
+                <input type="range" id="decompTrend" min="-1" max="1" step="0.05" value="0.8" oninput="updateDecomposition()">
+                <label>🔄 Seasonality: <span id="decompSeasonVal" class="param-value">15</span></label>
+                <input type="range" id="decompSeason" min="0" max="30" step="1" value="15" oninput="updateDecomposition()">
+                <label>🎲 Noise: <span id="decompNoiseVal" class="param-value">5</span></label>
+                <input type="range" id="decompNoise" min="0" max="15" step="1" value="5" oninput="updateDecomposition()">
+            </div>
+            <button onclick="showCode('decomposition_code')">🐍 Show Python Code</button>
+        </div>
+    </div>
+
+    <!-- ==================== STATIONARITY ==================== -->
+    <div id="stationarity" class="section" style="display:none;">
+        <div class="card">
+            <h2>⚡ Stationarity & ADF Test</h2>
+            <div class="grid-2">
+                <div>
+                    <div class="concept-box"><strong>⚡ Stationarity:</strong> Statistical properties (mean, variance) constant over time.</div>
+                    <div class="concept-box"><strong>📊 ADF Test:</strong> Null hypothesis = series is non-stationary. p-value ≤ 0.05 → Reject null → Stationary!</div>
+                    <button onclick="showCode('stationarity_code')">🐍 Show Python Code</button>
+                </div>
+                <div>
+                    <div id="stationarityChart" style="height: 350px;"></div>
+                    <div class="control-group">
+                        <label>📈 Trend: <span id="statTrendVal" class="param-value">1.0</span></label>
+                        <input type="range" id="statTrend" min="0" max="2" step="0.05" value="1" oninput="updateStationarity()">
+                        <label>🔄 Show Differenced: <input type="checkbox" id="showDifferenced" onchange="updateStationarity()"></label>
+                    </div>
+                </div>
+            </div>
+            <div id="stationarityInterpretation" class="info-text"></div>
+        </div>
+    </div>
+
+    <!-- ==================== QUIZ ==================== -->
+    <div id="quiz" class="section" style="display:none;">
+        <div class="card">
+            <h2>🎯 Test Your Knowledge</h2>
+            <div id="quizContainer"></div>
+            <button onclick="checkAnswers()">✅ Submit Answers</button>
+            <button onclick="resetQuiz()">🔄 Reset Quiz</button>
+            <div id="quizResult" style="margin-top: 20px;"></div>
+        </div>
+    </div>
+</div>
+
+<div id="codeModal" class="code-modal">
+    <div class="code-content">
+        <span class="close-code" onclick="closeCode()">&times;</span>
+        <pre id="codeDisplay"></pre>
+    </div>
+</div>
+
+<div class="footer">
+    <p>© 2026 Ashna Imtiaz 📊Time Series Analysis Dashboard </p>
+</div>
+
+<script>
+    // ==================== DATA GENERATION ====================
+    function generateDates(days) {
+        let dates = [];
+        for(let i = 0; i < days; i++) dates.push(`Day ${i+1}`);
+        return dates;
+    }
+
+    // ==================== MOVING AVERAGES ====================
+    function calculateSMA(data, window) {
+        let sma = [];
+        for(let i = 0; i < data.length; i++) {
+            if(i >= window - 1) {
+                let sum = 0;
+                for(let j = i - window + 1; j <= i; j++) sum += data[j];
+                sma.push(sum / window);
+            } else sma.push(null);
+        }
+        return sma;
+    }
+
+    function calculateEMA(data, window) {
+        let ema = [];
+        let k = 2 / (window + 1);
+        for(let i = 0; i < data.length; i++) {
+            if(i === 0) ema.push(data[0]);
+            else ema.push(data[i] * k + ema[i-1] * (1 - k));
+        }
+        return ema;
+    }
+
+    function calculateWMA(data, window) {
+        let wma = [];
+        for(let i = 0; i < data.length; i++) {
+            if(i >= window - 1) {
+                let sum = 0, weightSum = 0;
+                for(let j = 0; j < window; j++) {
+                    let weight = j + 1;
+                    sum += data[i - window + 1 + j] * weight;
+                    weightSum += weight;
+                }
+                wma.push(sum / weightSum);
+            } else wma.push(null);
+        }
+        return wma;
+    }
+
+    // ==================== AUTOCORRELATION ====================
+    function calculateACF(data, maxLags) {
+        let n = data.length;
+        let mean = data.reduce((a,b) => a+b, 0) / n;
+        let variance = 0;
+        for(let i = 0; i < n; i++) variance += Math.pow(data[i] - mean, 2);
+        let acf = [];
+        for(let lag = 0; lag <= maxLags; lag++) {
+            if(lag === 0) { acf.push(1); continue; }
+            let cov = 0;
+            for(let i = lag; i < n; i++) cov += (data[i] - mean) * (data[i - lag] - mean);
+            acf.push(cov / variance);
+        }
+        return acf;
+    }
+
+    // ==================== UPDATE FUNCTIONS ====================
+    
+    function updateFundamentalChart() {
+        let trend = parseFloat(document.getElementById('fundTrend').value);
+        let season = parseFloat(document.getElementById('fundSeason').value);
+        let noise = parseFloat(document.getElementById('fundNoise').value);
+        document.getElementById('fundTrendVal').innerText = trend;
+        document.getElementById('fundSeasonVal').innerText = season;
+        document.getElementById('fundNoiseVal').innerText = noise;
+        let days = 200, dates = generateDates(days), prices = [];
+        for(let i = 0; i < days; i++) prices.push(100 + trend * i + season * Math.sin(2 * Math.PI * i / 30) + (Math.random() - 0.5) * noise);
+        Plotly.newPlot('fundamentalChart', [{x: dates, y: prices, mode: 'lines', name: 'Time Series', line: {color: '#667eea', width: 2}, fill: 'tozeroy'}], 
+            {title: 'What is Time Series?', plot_bgcolor: 'rgba(0,0,0,0)', paper_bgcolor: 'rgba(0,0,0,0)', font: {color: '#fff'}});
+    }
+
+    function updateTrendChart() {
+        let trendType = document.getElementById('trendType').value;
+        let strength = parseFloat(document.getElementById('trendStrength').value);
+        let noise = parseFloat(document.getElementById('trendNoise').value);
+        document.getElementById('trendStrengthVal').innerText = strength;
+        document.getElementById('trendNoiseVal').innerText = noise;
+        let days = 150, dates = generateDates(days), prices = [], trendLine = [];
+        for(let i = 0; i < days; i++) {
+            let trendVal = trendType === 'up' ? strength * i : trendType === 'down' ? -strength * i : trendType === 'exponential' ? 100 * (Math.pow(1.02, strength * i) - 1) : 0;
+            let seasonVal = 5 * Math.sin(2 * Math.PI * i / 30);
+            prices.push(100 + trendVal + seasonVal + (Math.random() - 0.5) * noise);
+            if(trendType === 'up') trendLine.push(100 + strength * i);
+            else if(trendType === 'down') trendLine.push(100 - strength * i);
+            else if(trendType === 'flat') trendLine.push(100);
+            else trendLine.push(100 + 100 * (Math.pow(1.02, strength * i) - 1));
+        }
+        Plotly.newPlot('trendChart', [
+            {x: dates, y: prices, mode: 'lines', name: 'Data', line: {color: 'rgba(255,255,255,0.5)', width: 1}},
+            {x: dates, y: trendLine, mode: 'lines', name: 'Trend', line: {color: '#f093fb', width: 3, dash: 'dash'}}
+        ], {plot_bgcolor: 'rgba(0,0,0,0)', paper_bgcolor: 'rgba(0,0,0,0)', font: {color: '#fff'}});
+        document.getElementById('trendInterpretation').innerHTML = trendType === 'up' ? '📈 UPTREND' : trendType === 'down' ? '📉 DOWNTREND' : trendType === 'exponential' ? '🚀 EXPONENTIAL' : '➡️ STABLE';
+    }
+
+    function updateSeasonalityChart() {
+        let amp = parseFloat(document.getElementById('seasonAmp').value);
+        let period = parseFloat(document.getElementById('seasonPeriod').value);
+        let trend = parseFloat(document.getElementById('seasonTrend').value);
+        document.getElementById('seasonAmpVal').innerText = amp;
+        document.getElementById('seasonPeriodVal').innerText = period;
+        document.getElementById('seasonTrendVal').innerText = trend;
+        let days = 200, dates = generateDates(days), prices = [], seasonalPattern = [];
+        for(let i = 0; i < days; i++) {
+            let seasonVal = amp * Math.sin(2 * Math.PI * i / period);
+            seasonalPattern.push(100 + seasonVal);
+            prices.push(100 + trend * i + seasonVal + (Math.random() - 0.5) * 3);
+        }
+        Plotly.newPlot('seasonalityChart', [
+            {x: dates, y: prices, mode: 'lines', name: 'Actual Data', line: {color: 'rgba(255,255,255,0.6)', width: 1.5}},
+            {x: dates, y: seasonalPattern, mode: 'lines', name: 'Seasonal Pattern', line: {color: '#f093fb', width: 2}}
+        ], {title: `Period = ${period} days`, plot_bgcolor: 'rgba(0,0,0,0)', paper_bgcolor: 'rgba(0,0,0,0)', font: {color: '#fff'}});
+        document.getElementById('seasonInterpretation').innerHTML = `🔄 Pattern repeats every ${period} days`;
+    }
+
+    function updateMAChart() {
+        let window = parseInt(document.getElementById('maWindow').value);
+        let trend = parseFloat(document.getElementById('maTrend').value);
+        let noise = parseFloat(document.getElementById('maNoise').value);
+        let maType = document.getElementById('maType').value;
+        document.getElementById('maWindowVal').innerText = window;
+        document.getElementById('maTrendVal').innerText = trend;
+        document.getElementById('maNoiseVal').innerText = noise;
+        let days = 150, dates = generateDates(days), prices = [];
+        for(let i = 0; i < days; i++) prices.push(100 + trend * i + 10 * Math.sin(2 * Math.PI * i / 30) + (Math.random() - 0.5) * noise);
+        let ma = maType === 'sma' ? calculateSMA(prices, window) : maType === 'ema' ? calculateEMA(prices, window) : calculateWMA(prices, window);
+        let maName = maType === 'sma' ? 'SMA' : maType === 'ema' ? 'EMA' : 'WMA';
+        Plotly.newPlot('maChart', [
+            {x: dates, y: prices, mode: 'lines', name: 'Original', line: {color: 'rgba(255,255,255,0.4)', width: 1}},
+            {x: dates, y: ma, mode: 'lines', name: `${window}-day ${maName}`, line: {color: '#f093fb', width: 3}}
+        ], {plot_bgcolor: 'rgba(0,0,0,0)', paper_bgcolor: 'rgba(0,0,0,0)', font: {color: '#fff'}});
+        document.getElementById('maInterpretation').innerHTML = `📊 ${maName}: ${window < 10 ? 'Fast' : window > 30 ? 'Slow' : 'Balanced'}`;
+    }
+
+    function updateACFChart() {
+        let pattern = document.getElementById('acfPattern').value;
+        let trend = parseFloat(document.getElementById('acfTrend').value);
+        document.getElementById('acfTrendVal').innerText = trend;
+        let days = 300, data = [];
+        for(let i = 0; i < days; i++) {
+            if(pattern === 'random') data.push(100 + (Math.random() - 0.5) * 10);
+            else if(pattern === 'trend') data.push(100 + trend * i + (Math.random() - 0.5) * 8);
+            else if(pattern === 'seasonal') data.push(100 + trend * i + 10 * Math.sin(2 * Math.PI * i / 7) + (Math.random() - 0.5) * 5);
+            else data.push(i === 0 ? 100 : 0.7 * data[i-1] + 30 + (Math.random() - 0.5) * 5);
+        }
+        let acf = calculateACF(data, 40);
+        let lags = [], bars = [];
+        for(let i = 0; i <= 40; i++) lags.push(i);
+        let threshold = 1.96 / Math.sqrt(days);
+        for(let i = 0; i < acf.length; i++) bars.push({x: [lags[i]], y: [acf[i]], type: 'bar', marker: {color: Math.abs(acf[i]) > threshold ? '#f093fb' : '#667eea'}});
+        Plotly.newPlot('acfChart', bars, {
+            title: 'ACF Plot', xaxis: {title: 'Lag'}, yaxis: {title: 'Correlation', range: [-1, 1]},
+            shapes: [
+                {type: 'line', x0: 0, x1: 40, y0: threshold, y1: threshold, line: {color: '#00ff9d', width: 2, dash: 'dash'}},
+                {type: 'line', x0: 0, x1: 40, y0: -threshold, y1: -threshold, line: {color: '#00ff9d', width: 2, dash: 'dash'}}
+            ], plot_bgcolor: 'rgba(0,0,0,0)', paper_bgcolor: 'rgba(0,0,0,0)', font: {color: '#fff'}, height: 400
+        });
+        let msg = pattern === 'random' ? '🎲 WHITE NOISE' : pattern === 'trend' ? '📈 TREND - Needs differencing' : pattern === 'seasonal' ? '🔄 SEASONALITY' : '📊 AR(1) MODEL';
+        document.getElementById('acfInterpretation').innerHTML = msg;
+    }
+
+    // ==================== DIFFERENCING (DETAILED) ====================
+    function updateDifferencing() {
+        let trend = parseFloat(document.getElementById('diffTrend').value);
+        let order = parseInt(document.getElementById('diffOrder').value);
+        let seasonalDiff = document.getElementById('showSeasonalDiff').checked;
+        document.getElementById('diffTrendVal').innerText = trend;
+        
+        let days = 150, dates = generateDates(days);
+        let original = [];
+        for(let i = 0; i < days; i++) {
+            original.push(100 + trend * i + 10 * Math.sin(2 * Math.PI * i / 30) + (Math.random() - 0.5) * 5);
+        }
+        
+        let transformed = [...original];
+        let title = "Original Series";
+        
+        if(order === 1) {
+            let diffed = [];
+            for(let i = 1; i < transformed.length; i++) diffed.push(transformed[i] - transformed[i-1]);
+            transformed = diffed;
+            dates = generateDates(days-1);
+            title = "First Order Differencing (yₜ - yₜ₋₁)";
+        } else if(order === 2) {
+            let diff1 = [];
+            for(let i = 1; i < transformed.length; i++) diff1.push(transformed[i] - transformed[i-1]);
+            let diff2 = [];
+            for(let i = 1; i < diff1.length; i++) diff2.push(diff1[i] - diff1[i-1]);
+            transformed = diff2;
+            dates = generateDates(days-2);
+            title = "Second Order Differencing";
+        }
+        
+        if(seasonalDiff && order === 0) {
+            let seasonalDiffed = [];
+            for(let i = 7; i < original.length; i++) seasonalDiffed.push(original[i] - original[i-7]);
+            transformed = seasonalDiffed;
+            dates = generateDates(days-7);
+            title = "Seasonal Differencing (lag 7) - Removes Weekly Pattern";
+        }
+        
+        let interpretation = "";
+        if(order === 0 && !seasonalDiff) {
+            interpretation = "📊 ORIGINAL SERIES: Shows clear trend. Mean is NOT constant → NON-STATIONARY. Try first order differencing!";
+        } else if(order === 1) {
+            interpretation = "✅ FIRST ORDER DIFFERENCING: Removed the linear trend! Series now fluctuates around a constant mean. Check if ACF bars drop quickly.";
+        } else if(order === 2) {
+            interpretation = "⚠️ SECOND ORDER DIFFERENCING: Removed quadratic trend, but may have added extra noise. Usually first order is sufficient.";
+        } else if(seasonalDiff) {
+            interpretation = "🔄 SEASONAL DIFFERENCING: Removed the weekly seasonal pattern! The series now shows only random fluctuations.";
+        }
+        
+        Plotly.newPlot('differencingChart', [{x: dates, y: transformed, mode: 'lines', name: title, line: {color: '#f093fb', width: 2}, fill: 'tozeroy'}],
+            {title: title, plot_bgcolor: 'rgba(0,0,0,0)', paper_bgcolor: 'rgba(0,0,0,0)', font: {color: '#fff'}, height: 400});
+        document.getElementById('differencingInterpretation').innerHTML = interpretation;
+    }
+
+    function updateDecomposition() {
+        let trend = parseFloat(document.getElementById('decompTrend').value);
+        let season = parseFloat(document.getElementById('decompSeason').value);
+        let noise = parseFloat(document.getElementById('decompNoise').value);
+        document.getElementById('decompTrendVal').innerText = trend;
+        document.getElementById('decompSeasonVal').innerText = season;
+        document.getElementById('decompNoiseVal').innerText = noise;
+        let days = 200, dates = generateDates(days), trendComp = [], seasonalComp = [], noiseComp = [], observed = [];
+        for(let i = 0; i < days; i++) {
+            let t = 100 + trend * i;
+            let s = season * Math.sin(2 * Math.PI * i / 30);
+            let n = (Math.random() - 0.5) * noise;
+            trendComp.push(t); seasonalComp.push(s); noiseComp.push(n);
+            observed.push(t + s + n);
+        }
+        Plotly.newPlot('decompChart', [
+            {x: dates, y: observed, mode: 'lines', name: 'Original', line: {color: '#fff', width: 2}},
+            {x: dates, y: trendComp, mode: 'lines', name: 'Trend', line: {color: '#f093fb', width: 2}},
+            {x: dates, y: seasonalComp, mode: 'lines', name: 'Seasonal', line: {color: '#667eea', width: 2}},
+            {x: dates, y: noiseComp, mode: 'lines', name: 'Noise', line: {color: '#ff6b6b', width: 1}}
+        ], {title: 'Decomposition', height: 550, plot_bgcolor: 'rgba(0,0,0,0)', paper_bgcolor: 'rgba(0,0,0,0)', font: {color: '#fff'}});
+    }
+
+    function updateStationarity() {
+        let trend = parseFloat(document.getElementById('statTrend').value);
+        let showDiff = document.getElementById('showDifferenced').checked;
+        document.getElementById('statTrendVal').innerText = trend;
+        let days = 100, dates = generateDates(days), original = [], differenced = [];
+        for(let i = 0; i < days; i++) original.push(100 + trend * i + (Math.random() - 0.5) * 8);
+        for(let i = 1; i < days; i++) differenced.push(original[i] - original[i-1]);
+        if(showDiff) {
+            Plotly.newPlot('stationarityChart', [{x: dates.slice(1), y: differenced, mode: 'lines+markers', name: 'Differenced', line: {color: '#f093fb', width: 2}}],
+                {title: 'Differenced (Stationary)', plot_bgcolor: 'rgba(0,0,0,0)', paper_bgcolor: 'rgba(0,0,0,0)', font: {color: '#fff'}});
+            document.getElementById('stationarityInterpretation').innerHTML = '✅ STATIONARY: Mean is constant. Ready for ARIMA!';
+        } else {
+            Plotly.newPlot('stationarityChart', [{x: dates, y: original, mode: 'lines', name: 'Original', line: {color: '#667eea', width: 2}, fill: 'tozeroy'}],
+                {title: `Original (Trend = ${trend})`, plot_bgcolor: 'rgba(0,0,0,0)', paper_bgcolor: 'rgba(0,0,0,0)', font: {color: '#fff'}});
+            document.getElementById('stationarityInterpretation').innerHTML = `⚡ NON-STATIONARY: Mean is ${trend > 0 ? 'increasing' : 'decreasing'}. Try differencing!`;
+        }
+    }
+
+    // ==================== CODE MODAL ====================
+    const codeSnippets = {
+        fundamentals_code: `# Time Series Analysis - Fundamentals
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+
+dates = pd.date_range('2024-01-01', periods=200, freq='D')
+trend = np.linspace(0, 2, 200)
+seasonality = 10 * np.sin(2 * np.pi * np.arange(200) / 30)
+noise = np.random.normal(0, 5, 200)
+ts_data = 100 + trend + seasonality + noise
+
+df = pd.DataFrame({'Date': dates, 'Value': ts_data})
+df.set_index('Date', inplace=True)
+
+plt.figure(figsize=(12,5))
+plt.plot(df.index, df['Value'])
+plt.title('Time Series = Trend + Seasonality + Noise')
+plt.show()`,
+        
+        differencing_code: `# Differencing - Complete Guide
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+from statsmodels.graphics.tsaplots import plot_acf
+from statsmodels.tsa.stattools import adfuller
+
+# Create non-stationary data
+dates = pd.date_range('2024-01-01', periods=200, freq='D')
+trend = np.linspace(100, 300, 200)
+noise = np.random.normal(0, 10, 200)
+data = trend + noise
+
+df = pd.DataFrame({'Date': dates, 'Value': data})
+df.set_index('Date', inplace=True)
+
+# ============================================
+# 1. FIRST ORDER DIFFERENCING
+# ============================================
+df['diff_1'] = df['Value'].diff()
+
+# ============================================
+# 2. SECOND ORDER DIFFERENCING
+# ============================================
+df['diff_2'] = df['diff_1'].diff()
+
+# ============================================
+# 3. SEASONAL DIFFERENCING (lag 7 for weekly)
+# ============================================
+df['seasonal_diff'] = df['Value'] - df['Value'].shift(7)
+
+# ============================================
+# VISUALIZE ALL
+# ============================================
+fig, axes = plt.subplots(4, 1, figsize=(12, 10))
+
+axes[0].plot(df['Value'])
+axes[0].set_title('Original Series (Non-Stationary)')
+
+axes[1].plot(df['diff_1'])
+axes[1].set_title('First Order Differencing (Stationary)')
+axes[1].axhline(y=0, color='r', linestyle='--')
+
+axes[2].plot(df['diff_2'])
+axes[2].set_title('Second Order Differencing')
+
+axes[3].plot(df['seasonal_diff'])
+axes[3].set_title('Seasonal Differencing (lag 7)')
+axes[3].axhline(y=0, color='r', linestyle='--')
+
+plt.tight_layout()
+plt.show()
+
+# ============================================
+# ADF TEST TO CHECK STATIONARITY
+# ============================================
+def adf_test(series, name):
+    result = adfuller(series.dropna())
+    print(f"{name}: p-value = {result[1]:.4f}")
+    if result[1] <= 0.05:
+        print("  ✅ Stationary")
+    else:
+        print("  ❌ Non-Stationary")
+
+adf_test(df['Value'], "Original")
+adf_test(df['diff_1'], "First Order Diff")
+adf_test(df['diff_2'], "Second Order Diff")
+adf_test(df['seasonal_diff'], "Seasonal Diff")
+
+# ============================================
+# KEY INSIGHTS
+# ============================================
+print("\\n💡 KEY INSIGHTS:")
+print("• First order differencing removes linear trend")
+print("• Second order removes quadratic trend (rarely needed)")
+print("• Seasonal differencing removes repeating patterns")
+print("• Check ACF plot: stationary series has no slow decay")`,
+        
+        ma_code: `# SMA, EMA, WMA Implementation
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+
+# Sample data
+dates = pd.date_range('2024-01-01', periods=150, freq='D')
+data = np.cumsum(np.random.randn(150)) + 100
+df = pd.DataFrame({'Date': dates, 'Value': data})
+df.set_index('Date', inplace=True)
+
+window = 20
+
+# SMA - Equal weights
+df['SMA'] = df['Value'].rolling(window=window).mean()
+
+# EMA - Exponential weights (more weight to recent)
+df['EMA'] = df['Value'].ewm(span=window, adjust=False).mean()
+
+# WMA - Linear weights (manual)
+def weighted_ma(series, window):
+    weights = np.arange(1, window + 1)
+    return series.rolling(window).apply(
+        lambda x: np.dot(x, weights) / weights.sum(), raw=True
+    )
+df['WMA'] = weighted_ma(df['Value'], window)
+
+# Plot
+plt.figure(figsize=(14,6))
+plt.plot(df.index, df['Value'], alpha=0.3, label='Original', color='gray')
+plt.plot(df.index, df['SMA'], label='SMA', linewidth=2)
+plt.plot(df.index, df['EMA'], label='EMA', linewidth=2)
+plt.plot(df.index, df['WMA'], label='WMA', linewidth=2)
+plt.legend()
+plt.title('SMA vs EMA vs WMA')
+plt.show()`,
+        
+        acf_code: `# Autocorrelation (ACF) and PACF
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+from statsmodels.graphics.tsaplots import plot_acf, plot_pacf
+
+# Create data with seasonality
+dates = pd.date_range('2024-01-01', periods=300, freq='D')
+data = 100 + np.linspace(0, 50, 300) + 15 * np.sin(2 * np.pi * np.arange(300) / 30)
+df = pd.DataFrame({'Date': dates, 'Value': data})
+df.set_index('Date', inplace=True)
+
+fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(12, 8))
+plot_acf(df['Value'], lags=40, ax=ax1)
+ax1.set_title('ACF - Total Correlation')
+
+plot_pacf(df['Value'], lags=40, ax=ax2)
+ax2.set_title('PACF - Direct Correlation')
+
+plt.tight_layout()
+plt.show()
+
+print("📖 ACF Interpretation:")
+print("- Bars outside blue band = Significant")
+print("- Slow decay = Non-stationary (needs differencing)")
+print("- Spikes at regular intervals = Seasonality")`,
+        
+        decomposition_code: `# Time Series Decomposition
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+from statsmodels.tsa.seasonal import seasonal_decompose
+
+dates = pd.date_range('2024-01-01', periods=365, freq='D')
+data = np.linspace(100, 200, 365) + 20 * np.sin(2 * np.pi * np.arange(365) / 30)
+df = pd.DataFrame({'Date': dates, 'Value': data})
+df.set_index('Date', inplace=True)
+
+result = seasonal_decompose(df['Value'], model='additive', period=30)
+
+fig, axes = plt.subplots(4, 1, figsize=(14, 10))
+axes[0].plot(result.observed); axes[0].set_title('Original')
+axes[1].plot(result.trend); axes[1].set_title('Trend')
+axes[2].plot(result.seasonal); axes[2].set_title('Seasonal')
+axes[3].plot(result.resid); axes[3].set_title('Residual')
+plt.tight_layout()
+plt.show()`,
+        
+        stationarity_code: `# Stationarity Testing (ADF Test)
+import pandas as pd
+import numpy as np
+from statsmodels.tsa.stattools import adfuller
+
+dates = pd.date_range('2024-01-01', periods=200, freq='D')
+data = np.linspace(100, 300, 200) + np.random.normal(0, 10, 200)
+df = pd.DataFrame({'Date': dates, 'Value': data})
+df.set_index('Date', inplace=True)
+
+def check_stationarity(series, name):
+    result = adfuller(series)
+    print(f"{name}: p-value = {result[1]:.4f}")
+    if result[1] <= 0.05:
+        print("  ✅ Stationary (Reject H0)")
+    else:
+        print("  ❌ Non-Stationary (Fail to reject H0)")
+
+check_stationarity(df['Value'], "Original")
+df['Differenced'] = df['Value'].diff()
+check_stationarity(df['Differenced'].dropna(), "Differenced")`
+    };
+
+    function showCode(codeKey) {
+        document.getElementById('codeDisplay').innerText = codeSnippets[codeKey];
+        document.getElementById('codeModal').style.display = 'flex';
+    }
+
+    function closeCode() { document.getElementById('codeModal').style.display = 'none'; }
+
+    // ==================== NAVIGATION ====================
+    function showSection(sectionId) {
+        document.querySelectorAll('.section').forEach(section => section.style.display = 'none');
+        document.getElementById(sectionId).style.display = 'block';
+        document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
+        event.target.classList.add('active');
+        if(sectionId === 'fundamentals') updateFundamentalChart();
+        else if(sectionId === 'trend') updateTrendChart();
+        else if(sectionId === 'seasonality') updateSeasonalityChart();
+        else if(sectionId === 'moving_average') updateMAChart();
+        else if(sectionId === 'autocorrelation') updateACFChart();
+        else if(sectionId === 'differencing') updateDifferencing();
+        else if(sectionId === 'decomposition') updateDecomposition();
+        else if(sectionId === 'stationarity') updateStationarity();
+        else if(sectionId === 'quiz') loadQuiz();
+    }
+
+    // ==================== QUIZ ====================
+    const quizQuestions = [
+        {question: "What is first order differencing?", options: ["yₜ + yₜ₋₁", "yₜ - yₜ₋₁", "yₜ × yₜ₋₁", "yₜ / yₜ₋₁"], correct: 1, explanation: "First order differencing subtracts the previous value: yₜ - yₜ₋₁"},
+        {question: "What does differencing remove from a time series?", options: ["Noise", "Seasonality only", "Trend", "Everything"], correct: 2, explanation: "Differencing removes trend to achieve stationarity."},
+        {question: "What does a slowly decaying ACF indicate?", options: ["White noise", "Trend (non-stationarity)", "Perfect randomness", "No correlation"], correct: 1, explanation: "Slow decay indicates trend → non-stationary, needs differencing."},
+        {question: "What is the difference between SMA and EMA?", options: ["EMA gives more weight to recent", "SMA is faster", "EMA ignores old data", "No difference"], correct: 0, explanation: "EMA gives more weight to recent observations."},
+        {question: "When should you use second order differencing?", options: ["Always", "Never", "When first order doesn't remove quadratic trend", "For seasonal data"], correct: 2, explanation: "Second order differencing removes quadratic trends when first order isn't enough."}
+    ];
+
+    function loadQuiz() {
+        let quizHtml = '';
+        quizQuestions.forEach((q, idx) => {
+            quizHtml += `<div class="quiz-question" id="q${idx}"><strong>Q${idx+1}. ${q.question}</strong><br>`;
+            q.options.forEach((opt, optIdx) => {
+                quizHtml += `<label class="quiz-option" onclick="selectOption(${idx}, ${optIdx})" id="q${idx}opt${optIdx}">
+                    <input type="radio" name="q${idx}" value="${optIdx}"> ${String.fromCharCode(65+optIdx)}. ${opt}
+                </label>`;
+            });
+            quizHtml += `<div id="q${idx}explanation" style="margin-top: 10px; display: none;"></div></div>`;
+        });
+        document.getElementById('quizContainer').innerHTML = quizHtml;
+    }
+
+    function selectOption(qIdx, optIdx) {
+        for(let i = 0; i < quizQuestions[qIdx].options.length; i++)
+            document.getElementById(`q${qIdx}opt${i}`).classList.remove('correct', 'wrong');
+        let isCorrect = (optIdx === quizQuestions[qIdx].correct);
+        document.getElementById(`q${qIdx}opt${optIdx}`).classList.add(isCorrect ? 'correct' : 'wrong');
+        if(!isCorrect) document.getElementById(`q${qIdx}opt${quizQuestions[qIdx].correct}`).classList.add('correct');
+        document.getElementById(`q${qIdx}explanation`).innerHTML = `<span style="color: ${isCorrect ? '#90ff90' : '#ff9090'}">${isCorrect ? '✅ Correct!' : '❌ Incorrect.'}</span> ${quizQuestions[qIdx].explanation}`;
+        document.getElementById(`q${qIdx}explanation`).style.display = 'block';
+    }
+
+    function checkAnswers() {
+        let score = 0;
+        quizQuestions.forEach((q, idx) => {
+            let selected = document.querySelector(`input[name="q${idx}"]:checked`);
+            if(selected && parseInt(selected.value) === q.correct) score++;
+        });
+        document.getElementById('quizResult').innerHTML = `<div class="info-text" style="text-align: center;">🎯 Score: ${score}/${quizQuestions.length} (${(score/quizQuestions.length)*100}%)<br>${score === quizQuestions.length ? 'Perfect! 🎉' : 'Review the differencing section above!'}</div>`;
+    }
+
+    function resetQuiz() {
+        document.querySelectorAll('input[type="radio"]').forEach(radio => radio.checked = false);
+        for(let i = 0; i < quizQuestions.length; i++) {
+            for(let j = 0; j < quizQuestions[i].options.length; j++)
+                document.getElementById(`q${i}opt${j}`)?.classList.remove('correct', 'wrong');
+            document.getElementById(`q${i}explanation`).style.display = 'none';
+        }
+        document.getElementById('quizResult').innerHTML = '';
+    }
+
+    // Initialize
+    updateFundamentalChart();
+    updateTrendChart();
+    updateSeasonalityChart();
+    updateMAChart();
+    updateACFChart();
+    updateDifferencing();
+    updateDecomposition();
+    updateStationarity();
+    loadQuiz();
+</script>
+</body>
+</html>
