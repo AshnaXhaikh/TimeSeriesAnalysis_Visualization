@@ -194,9 +194,44 @@
             background: rgba(0,0,0,0.3);
             margin-top: 40px;
         }
+        /* QUIZ BOX STYLES */
+        .quiz-option {
+            display: inline-block;
+            margin: 8px;
+            padding: 12px 20px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 1px solid rgba(255,255,255,0.2);
+            width: calc(50% - 16px);
+            box-sizing: border-box;
+            text-align: center;
+            font-weight: 500;
+        }
+        .quiz-option:hover {
+            background: rgba(102,126,234,0.4);
+            transform: translateY(-2px);
+        }
+        .quiz-option.correct {
+            background: rgba(0,255,0,0.3);
+            border: 1px solid #00ff9d;
+            box-shadow: 0 0 8px rgba(0,255,0,0.3);
+        }
+        .quiz-option.wrong {
+            background: rgba(255,0,0,0.3);
+            border: 1px solid #ff6b6b;
+        }
+        .quiz-question {
+            background: rgba(0,0,0,0.3);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 25px;
+        }
         @media (max-width: 768px) {
             .grid-2, .grid-3 { grid-template-columns: 1fr; }
             .nav-btn { padding: 8px 12px; font-size: 0.7rem; }
+            .quiz-option { width: calc(100% - 16px); }
         }
     </style>
 </head>
@@ -491,7 +526,7 @@
         </div>
     </div>
 
-    <!-- ==================== QUIZ ==================== -->
+    <!-- ==================== QUIZ (UPDATED: 12 questions, boxed options) ==================== -->
     <div id="quiz" class="section" style="display:none;">
         <div class="card">
             <h2>🎯 Test Your Knowledge</h2>
@@ -1009,37 +1044,62 @@ check_stationarity(df['Differenced'].dropna(), "Differenced")`
         else if(sectionId === 'quiz') loadQuiz();
     }
 
-    // ==================== QUIZ ====================
+    // ==================== QUIZ (UPDATED: 12 questions, boxed options) ====================
     const quizQuestions = [
-        {question: "What is first order differencing?", options: ["yₜ + yₜ₋₁", "yₜ - yₜ₋₁", "yₜ × yₜ₋₁", "yₜ / yₜ₋₁"], correct: 1, explanation: "First order differencing subtracts the previous value: yₜ - yₜ₋₁"},
-        {question: "What does differencing remove from a time series?", options: ["Noise", "Seasonality only", "Trend", "Everything"], correct: 2, explanation: "Differencing removes trend to achieve stationarity."},
-        {question: "What does a slowly decaying ACF indicate?", options: ["White noise", "Trend (non-stationarity)", "Perfect randomness", "No correlation"], correct: 1, explanation: "Slow decay indicates trend → non-stationary, needs differencing."},
-        {question: "What is the difference between SMA and EMA?", options: ["EMA gives more weight to recent", "SMA is faster", "EMA ignores old data", "No difference"], correct: 0, explanation: "EMA gives more weight to recent observations."},
-        {question: "When should you use second order differencing?", options: ["Always", "Never", "When first order doesn't remove quadratic trend", "For seasonal data"], correct: 2, explanation: "Second order differencing removes quadratic trends when first order isn't enough."}
+        {question: "What is first order differencing?", options: ["yₜ + yₜ₋₁", "yₜ - yₜ₋₁", "yₜ × yₜ₋₁", "yₜ / yₜ₋₁"], correct: 1, explanation: "First order differencing subtracts the previous value: yₜ - yₜ₋₁. It removes linear trend."},
+        {question: "What does differencing remove from a time series?", options: ["Noise", "Seasonality only", "Trend", "Everything"], correct: 2, explanation: "Differencing removes trend to achieve stationarity. It can also reduce seasonality if applied seasonally."},
+        {question: "What does a slowly decaying ACF indicate?", options: ["White noise", "Trend (non-stationarity)", "Perfect randomness", "No correlation"], correct: 1, explanation: "Slow decay in ACF indicates a trend → the series is non-stationary and needs differencing."},
+        {question: "What is the difference between SMA and EMA?", options: ["EMA gives more weight to recent values", "SMA is faster", "EMA ignores old data", "No difference"], correct: 0, explanation: "EMA (Exponential Moving Average) assigns exponentially decreasing weights to older observations, making it more responsive."},
+        {question: "When should you use second order differencing?", options: ["Always", "Never", "When first order doesn't remove quadratic trend", "For seasonal data"], correct: 2, explanation: "Second order differencing (difference of differences) removes quadratic trends when first order is insufficient."},
+        {question: "What is the purpose of seasonal differencing?", options: ["Remove noise", "Remove trend", "Remove repeating patterns", "Increase variance"], correct: 2, explanation: "Seasonal differencing subtracts the value from one full season ago (e.g., 7 days for weekly) to remove seasonality."},
+        {question: "What does an ACF plot show?", options: ["Correlation between series and its lag", "Distribution of data", "Trend direction", "Forecast errors"], correct: 0, explanation: "ACF (Autocorrelation Function) plots correlation between the series and its lagged versions."},
+        {question: "What is the null hypothesis of the ADF test?", options: ["Series is stationary", "Series is non-stationary", "Series has seasonality", "Series has no noise"], correct: 1, explanation: "Augmented Dickey-Fuller test has null hypothesis that the series has a unit root (non-stationary). p ≤ 0.05 rejects null → stationary."},
+        {question: "Which moving average reacts fastest to price changes?", options: ["SMA (20 period)", "EMA (20 period)", "WMA (20 period)", "All react the same"], correct: 1, explanation: "EMA gives more weight to recent prices, so it reacts faster than SMA or WMA with the same window."},
+        {question: "What is the main component of a time series that repeats at fixed intervals?", options: ["Trend", "Seasonality", "Noise", "Cycle"], correct: 1, explanation: "Seasonality refers to predictable patterns that repeat at regular intervals (daily, weekly, yearly)."},
+        {question: "What happens if you difference a stationary series?", options: ["It becomes non-stationary", "It becomes more seasonal", "It adds noise (over-differencing)", "It removes all variation"], correct: 2, explanation: "Over-differencing a stationary series introduces artificial patterns and increases noise, harming forecasts."},
+        {question: "What does a significant spike at lag 12 in ACF suggest?", options: ["No pattern", "Yearly seasonality", "Random walk", "Outlier"], correct: 1, explanation: "A spike at lag 12 (for monthly data) indicates a yearly seasonal pattern."}
     ];
 
     function loadQuiz() {
         let quizHtml = '';
         quizQuestions.forEach((q, idx) => {
-            quizHtml += `<div class="quiz-question" id="q${idx}"><strong>Q${idx+1}. ${q.question}</strong><br>`;
+            quizHtml += `<div class="quiz-question" id="q${idx}"><strong>Q${idx+1}. ${q.question}</strong><br><div style="display: flex; flex-wrap: wrap; margin-top: 12px;">`;
             q.options.forEach((opt, optIdx) => {
-                quizHtml += `<label class="quiz-option" onclick="selectOption(${idx}, ${optIdx})" id="q${idx}opt${optIdx}">
-                    <input type="radio" name="q${idx}" value="${optIdx}"> ${String.fromCharCode(65+optIdx)}. ${opt}
-                </label>`;
+                quizHtml += `<div class="quiz-option" onclick="selectOption(${idx}, ${optIdx})" id="q${idx}opt${optIdx}">
+                    <input type="radio" name="q${idx}" value="${optIdx}" style="display: none;"> ${String.fromCharCode(65+optIdx)}. ${opt}
+                </div>`;
             });
-            quizHtml += `<div id="q${idx}explanation" style="margin-top: 10px; display: none;"></div></div>`;
+            quizHtml += `</div><div id="q${idx}explanation" style="margin-top: 12px; font-size: 0.9rem; display: none;"></div></div>`;
         });
         document.getElementById('quizContainer').innerHTML = quizHtml;
     }
 
     function selectOption(qIdx, optIdx) {
-        for(let i = 0; i < quizQuestions[qIdx].options.length; i++)
-            document.getElementById(`q${qIdx}opt${i}`).classList.remove('correct', 'wrong');
+        // Remove highlight from all options in this question
+        for(let i = 0; i < quizQuestions[qIdx].options.length; i++) {
+            const el = document.getElementById(`q${qIdx}opt${i}`);
+            if(el) el.classList.remove('correct', 'wrong');
+        }
         let isCorrect = (optIdx === quizQuestions[qIdx].correct);
-        document.getElementById(`q${qIdx}opt${optIdx}`).classList.add(isCorrect ? 'correct' : 'wrong');
-        if(!isCorrect) document.getElementById(`q${qIdx}opt${quizQuestions[qIdx].correct}`).classList.add('correct');
-        document.getElementById(`q${qIdx}explanation`).innerHTML = `<span style="color: ${isCorrect ? '#90ff90' : '#ff9090'}">${isCorrect ? '✅ Correct!' : '❌ Incorrect.'}</span> ${quizQuestions[qIdx].explanation}`;
-        document.getElementById(`q${qIdx}explanation`).style.display = 'block';
+        let optionEl = document.getElementById(`q${qIdx}opt${optIdx}`);
+        if(optionEl) optionEl.classList.add(isCorrect ? 'correct' : 'wrong');
+        
+        // Also show correct answer if wrong
+        if(!isCorrect) {
+            let correctEl = document.getElementById(`q${qIdx}opt${quizQuestions[qIdx].correct}`);
+            if(correctEl) correctEl.classList.add('correct');
+        }
+        
+        // Show explanation
+        let explanationDiv = document.getElementById(`q${qIdx}explanation`);
+        if(explanationDiv) {
+            explanationDiv.innerHTML = `<span style="color: ${isCorrect ? '#90ff90' : '#ff9090'}">${isCorrect ? '✅ Correct! ' : '❌ Incorrect. '}</span>${quizQuestions[qIdx].explanation}`;
+            explanationDiv.style.display = 'block';
+        }
+        
+        // Auto-check the radio (optional, for consistency)
+        let radio = document.querySelector(`input[name="q${idx}"][value="${optIdx}"]`);
+        if(radio) radio.checked = true;
     }
 
     function checkAnswers() {
@@ -1048,15 +1108,22 @@ check_stationarity(df['Differenced'].dropna(), "Differenced")`
             let selected = document.querySelector(`input[name="q${idx}"]:checked`);
             if(selected && parseInt(selected.value) === q.correct) score++;
         });
-        document.getElementById('quizResult').innerHTML = `<div class="info-text" style="text-align: center;">🎯 Score: ${score}/${quizQuestions.length} (${(score/quizQuestions.length)*100}%)<br>${score === quizQuestions.length ? 'Perfect! 🎉' : 'Review the differencing section above!'}</div>`;
+        let percent = (score/quizQuestions.length)*100;
+        let message = percent === 100 ? "Perfect! You're a TSA master! 🎉" : 
+                      percent >= 70 ? "Good job! Review the incorrect answers to improve. 💪" :
+                      "Keep learning! Try the interactive sections again. 📚";
+        document.getElementById('quizResult').innerHTML = `<div class="info-text" style="text-align: center;">🎯 Your Score: ${score}/${quizQuestions.length} (${percent}%)<br>${message}</div>`;
     }
 
     function resetQuiz() {
         document.querySelectorAll('input[type="radio"]').forEach(radio => radio.checked = false);
         for(let i = 0; i < quizQuestions.length; i++) {
-            for(let j = 0; j < quizQuestions[i].options.length; j++)
-                document.getElementById(`q${i}opt${j}`)?.classList.remove('correct', 'wrong');
-            document.getElementById(`q${i}explanation`).style.display = 'none';
+            for(let j = 0; j < quizQuestions[i].options.length; j++) {
+                let el = document.getElementById(`q${i}opt${j}`);
+                if(el) el.classList.remove('correct', 'wrong');
+            }
+            let expl = document.getElementById(`q${i}explanation`);
+            if(expl) expl.style.display = 'none';
         }
         document.getElementById('quizResult').innerHTML = '';
     }
