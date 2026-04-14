@@ -526,7 +526,7 @@
         </div>
     </div>
 
-    <!-- ==================== QUIZ (UPDATED: 12 questions, boxed options) ==================== -->
+    <!-- ==================== QUIZ (UPDATED: 15 questions covering ALL topics) ==================== -->
     <div id="quiz" class="section" style="display:none;">
         <div class="card">
             <h2>🎯 Test Your Knowledge</h2>
@@ -1044,87 +1044,120 @@ check_stationarity(df['Differenced'].dropna(), "Differenced")`
         else if(sectionId === 'quiz') loadQuiz();
     }
 
-    // ==================== QUIZ (UPDATED: 12 questions, boxed options) ====================
+    // ==================== QUIZ (UPDATED: 15 questions covering ALL topics, FIXED scoring) ====================
     const quizQuestions = [
+        // Fundamentals (2 questions)
+        {question: "What are the three main components of a time series?", options: ["Mean, Median, Mode", "Trend, Seasonality, Noise", "Variance, Standard Deviation, Correlation", "Open, High, Low"], correct: 1, explanation: "A time series is typically composed of Trend (long-term direction), Seasonality (repeating patterns), and Noise (random variations)."},
+        {question: "Which of the following is an example of time series data?", options: ["Student exam scores", "Daily stock prices", "Population by country", "Product categories"], correct: 1, explanation: "Daily stock prices are collected sequentially over time, making them time series data."},
+        
+        // Trend (2 questions)
+        {question: "What does a positive slope in a trend line indicate?", options: ["Downward trend", "Upward trend", "No trend", "Seasonal pattern"], correct: 1, explanation: "A positive slope indicates that values are increasing over time → upward trend."},
+        {question: "Which method is best for identifying the underlying trend in a noisy time series?", options: ["Raw data plot", "Moving average", "Seasonal decomposition", "Noise filtering only"], correct: 1, explanation: "Moving averages smooth out short-term fluctuations to reveal the underlying trend."},
+        
+        // Seasonality (2 questions)
+        {question: "If ice cream sales peak every July, this is an example of:", options: ["Trend", "Seasonality", "Noise", "Random walk"], correct: 1, explanation: "This is seasonality — a predictable pattern that repeats every year in summer."},
+        {question: "What does a period of 7 in seasonal data suggest?", options: ["Yearly pattern", "Monthly pattern", "Weekly pattern", "Daily pattern"], correct: 2, explanation: "A period of 7 indicates a weekly pattern (7 days)."},
+        
+        // Moving Averages (2 questions)
+        {question: "What is the main difference between SMA and EMA?", options: ["SMA is faster", "EMA gives more weight to recent values", "EMA ignores old data", "No difference"], correct: 1, explanation: "EMA (Exponential Moving Average) assigns exponentially decreasing weights to older observations, making it more responsive."},
+        {question: "What happens when you increase the window size of a moving average?", options: ["Becomes more responsive", "Becomes smoother but more lag", "Becomes noisier", "No effect"], correct: 1, explanation: "Larger windows average more data points → smoother line but more lag (slower to react)."},
+        
+        // ACF/Autocorrelation (2 questions)
+        {question: "What does an ACF plot show?", options: ["Distribution of data", "Correlation between series and its lag", "Trend direction", "Forecast errors"], correct: 1, explanation: "ACF (Autocorrelation Function) plots correlation between the series and its lagged versions."},
+        {question: "What does a slowly decaying ACF indicate?", options: ["White noise", "Stationary series", "Non-stationary series (trend)", "Perfect randomness"], correct: 2, explanation: "Slow decay in ACF indicates a trend → the series is non-stationary and needs differencing."},
+        
+        // Differencing (2 questions)
         {question: "What is first order differencing?", options: ["yₜ + yₜ₋₁", "yₜ - yₜ₋₁", "yₜ × yₜ₋₁", "yₜ / yₜ₋₁"], correct: 1, explanation: "First order differencing subtracts the previous value: yₜ - yₜ₋₁. It removes linear trend."},
-        {question: "What does differencing remove from a time series?", options: ["Noise", "Seasonality only", "Trend", "Everything"], correct: 2, explanation: "Differencing removes trend to achieve stationarity. It can also reduce seasonality if applied seasonally."},
-        {question: "What does a slowly decaying ACF indicate?", options: ["White noise", "Trend (non-stationarity)", "Perfect randomness", "No correlation"], correct: 1, explanation: "Slow decay in ACF indicates a trend → the series is non-stationary and needs differencing."},
-        {question: "What is the difference between SMA and EMA?", options: ["EMA gives more weight to recent values", "SMA is faster", "EMA ignores old data", "No difference"], correct: 0, explanation: "EMA (Exponential Moving Average) assigns exponentially decreasing weights to older observations, making it more responsive."},
-        {question: "When should you use second order differencing?", options: ["Always", "Never", "When first order doesn't remove quadratic trend", "For seasonal data"], correct: 2, explanation: "Second order differencing (difference of differences) removes quadratic trends when first order is insufficient."},
-        {question: "What is the purpose of seasonal differencing?", options: ["Remove noise", "Remove trend", "Remove repeating patterns", "Increase variance"], correct: 2, explanation: "Seasonal differencing subtracts the value from one full season ago (e.g., 7 days for weekly) to remove seasonality."},
-        {question: "What does an ACF plot show?", options: ["Correlation between series and its lag", "Distribution of data", "Trend direction", "Forecast errors"], correct: 0, explanation: "ACF (Autocorrelation Function) plots correlation between the series and its lagged versions."},
-        {question: "What is the null hypothesis of the ADF test?", options: ["Series is stationary", "Series is non-stationary", "Series has seasonality", "Series has no noise"], correct: 1, explanation: "Augmented Dickey-Fuller test has null hypothesis that the series has a unit root (non-stationary). p ≤ 0.05 rejects null → stationary."},
-        {question: "Which moving average reacts fastest to price changes?", options: ["SMA (20 period)", "EMA (20 period)", "WMA (20 period)", "All react the same"], correct: 1, explanation: "EMA gives more weight to recent prices, so it reacts faster than SMA or WMA with the same window."},
-        {question: "What is the main component of a time series that repeats at fixed intervals?", options: ["Trend", "Seasonality", "Noise", "Cycle"], correct: 1, explanation: "Seasonality refers to predictable patterns that repeat at regular intervals (daily, weekly, yearly)."},
-        {question: "What happens if you difference a stationary series?", options: ["It becomes non-stationary", "It becomes more seasonal", "It adds noise (over-differencing)", "It removes all variation"], correct: 2, explanation: "Over-differencing a stationary series introduces artificial patterns and increases noise, harming forecasts."},
-        {question: "What does a significant spike at lag 12 in ACF suggest?", options: ["No pattern", "Yearly seasonality", "Random walk", "Outlier"], correct: 1, explanation: "A spike at lag 12 (for monthly data) indicates a yearly seasonal pattern."}
+        {question: "What is the purpose of seasonal differencing?", options: ["Remove noise", "Remove trend only", "Remove repeating seasonal patterns", "Increase variance"], correct: 2, explanation: "Seasonal differencing subtracts the value from one full season ago to remove seasonality."},
+        
+        // Decomposition (1 question)
+        {question: "What are the three components extracted in time series decomposition?", options: ["Mean, Variance, Standard Deviation", "Trend, Seasonality, Residual", "ACF, PACF, CCF", "SMA, EMA, WMA"], correct: 1, explanation: "Decomposition breaks a series into Trend, Seasonal, and Residual (noise) components."},
+        
+        // Stationarity (2 questions)
+        {question: "What does it mean for a time series to be stationary?", options: ["It has a strong trend", "Statistical properties (mean, variance) are constant over time", "It has strong seasonality", "It has no patterns"], correct: 1, explanation: "A stationary series has constant mean and variance over time, making it easier to model and forecast."},
+        {question: "What is the null hypothesis of the ADF (Augmented Dickey-Fuller) test?", options: ["Series is stationary", "Series is non-stationary", "Series has seasonality", "Series has no autocorrelation"], correct: 1, explanation: "ADF test null hypothesis: series has a unit root (non-stationary). p ≤ 0.05 rejects null → stationary."}
     ];
+
+    let userSelections = new Array(quizQuestions.length).fill(null);
 
     function loadQuiz() {
         let quizHtml = '';
         quizQuestions.forEach((q, idx) => {
             quizHtml += `<div class="quiz-question" id="q${idx}"><strong>Q${idx+1}. ${q.question}</strong><br><div style="display: flex; flex-wrap: wrap; margin-top: 12px;">`;
             q.options.forEach((opt, optIdx) => {
-                quizHtml += `<div class="quiz-option" onclick="selectOption(${idx}, ${optIdx})" id="q${idx}opt${optIdx}">
-                    <input type="radio" name="q${idx}" value="${optIdx}" style="display: none;"> ${String.fromCharCode(65+optIdx)}. ${opt}
+                let isSelected = (userSelections[idx] === optIdx);
+                let selectedClass = isSelected ? (optIdx === q.correct ? 'correct' : (userSelections[idx] !== null ? 'wrong' : '')) : '';
+                quizHtml += `<div class="quiz-option ${selectedClass}" onclick="selectOption(${idx}, ${optIdx})" id="q${idx}opt${optIdx}">
+                    <input type="radio" name="q${idx}" value="${optIdx}" ${isSelected ? 'checked' : ''} style="display: none;"> ${String.fromCharCode(65+optIdx)}. ${opt}
                 </div>`;
             });
-            quizHtml += `</div><div id="q${idx}explanation" style="margin-top: 12px; font-size: 0.9rem; display: none;"></div></div>`;
+            quizHtml += `</div><div id="q${idx}explanation" style="margin-top: 12px; font-size: 0.9rem; display: ${userSelections[idx] !== null ? 'block' : 'none'};">`;
+            if(userSelections[idx] !== null) {
+                let isCorrect = (userSelections[idx] === q.correct);
+                quizHtml += `<span style="color: ${isCorrect ? '#90ff90' : '#ff9090'}">${isCorrect ? '✅ Correct! ' : '❌ Incorrect. '}</span>${q.explanation}`;
+            }
+            quizHtml += `</div></div>`;
         });
         document.getElementById('quizContainer').innerHTML = quizHtml;
     }
 
     function selectOption(qIdx, optIdx) {
-        // Remove highlight from all options in this question
-        for(let i = 0; i < quizQuestions[qIdx].options.length; i++) {
-            const el = document.getElementById(`q${qIdx}opt${i}`);
-            if(el) el.classList.remove('correct', 'wrong');
-        }
-        let isCorrect = (optIdx === quizQuestions[qIdx].correct);
-        let optionEl = document.getElementById(`q${qIdx}opt${optIdx}`);
-        if(optionEl) optionEl.classList.add(isCorrect ? 'correct' : 'wrong');
+        // Save selection
+        userSelections[qIdx] = optIdx;
         
-        // Also show correct answer if wrong
-        if(!isCorrect) {
-            let correctEl = document.getElementById(`q${qIdx}opt${quizQuestions[qIdx].correct}`);
-            if(correctEl) correctEl.classList.add('correct');
+        // Update UI for this question
+        let q = quizQuestions[qIdx];
+        for(let i = 0; i < q.options.length; i++) {
+            const el = document.getElementById(`q${qIdx}opt${i}`);
+            if(el) {
+                el.classList.remove('correct', 'wrong');
+                if(i === optIdx) {
+                    el.classList.add(i === q.correct ? 'correct' : 'wrong');
+                }
+                if(i === q.correct && optIdx !== q.correct) {
+                    el.classList.add('correct');
+                }
+                // Update radio button
+                let radio = el.querySelector('input');
+                if(radio) radio.checked = (i === optIdx);
+            }
         }
         
         // Show explanation
         let explanationDiv = document.getElementById(`q${qIdx}explanation`);
         if(explanationDiv) {
-            explanationDiv.innerHTML = `<span style="color: ${isCorrect ? '#90ff90' : '#ff9090'}">${isCorrect ? '✅ Correct! ' : '❌ Incorrect. '}</span>${quizQuestions[qIdx].explanation}`;
+            let isCorrect = (optIdx === q.correct);
+            explanationDiv.innerHTML = `<span style="color: ${isCorrect ? '#90ff90' : '#ff9090'}">${isCorrect ? '✅ Correct! ' : '❌ Incorrect. '}</span>${q.explanation}`;
             explanationDiv.style.display = 'block';
         }
-        
-        // Auto-check the radio (optional, for consistency)
-        let radio = document.querySelector(`input[name="q${idx}"][value="${optIdx}"]`);
-        if(radio) radio.checked = true;
     }
 
     function checkAnswers() {
         let score = 0;
-        quizQuestions.forEach((q, idx) => {
-            let selected = document.querySelector(`input[name="q${idx}"]:checked`);
-            if(selected && parseInt(selected.value) === q.correct) score++;
-        });
-        let percent = (score/quizQuestions.length)*100;
-        let message = percent === 100 ? "Perfect! You're a TSA master! 🎉" : 
-                      percent >= 70 ? "Good job! Review the incorrect answers to improve. 💪" :
-                      "Keep learning! Try the interactive sections again. 📚";
+        for(let i = 0; i < quizQuestions.length; i++) {
+            if(userSelections[i] !== null && userSelections[i] === quizQuestions[i].correct) {
+                score++;
+            }
+        }
+        let percent = Math.round((score/quizQuestions.length)*100);
+        let message = "";
+        if(percent === 100) {
+            message = "Perfect! You're a TSA master! 🎉";
+        } else if(percent >= 80) {
+            message = "Excellent! You have a strong understanding. 💪";
+        } else if(percent >= 60) {
+            message = "Good job! Review the incorrect answers to improve. 📚";
+        } else if(percent >= 40) {
+            message = "Keep going! Try the interactive sections again. 🔄";
+        } else {
+            message = "Don't worry! Explore each section above, then try the quiz again. 🌟";
+        }
         document.getElementById('quizResult').innerHTML = `<div class="info-text" style="text-align: center;">🎯 Your Score: ${score}/${quizQuestions.length} (${percent}%)<br>${message}</div>`;
     }
 
     function resetQuiz() {
-        document.querySelectorAll('input[type="radio"]').forEach(radio => radio.checked = false);
-        for(let i = 0; i < quizQuestions.length; i++) {
-            for(let j = 0; j < quizQuestions[i].options.length; j++) {
-                let el = document.getElementById(`q${i}opt${j}`);
-                if(el) el.classList.remove('correct', 'wrong');
-            }
-            let expl = document.getElementById(`q${i}explanation`);
-            if(expl) expl.style.display = 'none';
-        }
+        userSelections = new Array(quizQuestions.length).fill(null);
+        loadQuiz();
         document.getElementById('quizResult').innerHTML = '';
     }
 
